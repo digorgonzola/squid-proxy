@@ -111,6 +111,31 @@ resource "aws_iam_policy" "instance" {
 
 data "aws_iam_policy_document" "instance" {
   statement {
+    sid = "ssm"
+    actions = [
+      "ssm:UpdateInstanceInformation",
+      "ssmmessages:CreateControlChannel",
+      "ssmmessages:CreateDataChannel",
+      "ssmmessages:OpenControlChannel",
+      "ssmmessages:OpenDataChannel",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid = "ec2messages"
+    actions = [
+      "ec2messages:AcknowledgeMessage",
+      "ec2messages:DeleteMessage",
+      "ec2messages:FailMessage",
+      "ec2messages:GetEndpoint",
+      "ec2messages:GetMessages",
+      "ec2messages:SendReply",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
     sid = "EC2"
     actions = [
       "ec2:DescribeInstances",
@@ -169,11 +194,6 @@ data "aws_iam_policy_document" "instance" {
 resource "aws_iam_role_policy_attachment" "custom" {
   role       = aws_iam_role.instance.name
   policy_arn = aws_iam_policy.instance.arn
-}
-
-resource "aws_iam_role_policy_attachment" "ssm" {
-  role       = aws_iam_role.instance.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 resource "aws_iam_role_policy_attachment" "cloudwatch" {
@@ -329,7 +349,6 @@ resource "aws_autoscaling_group" "nat" {
     aws_lambda_function.nat,
     aws_iam_role_policy_attachment.cloudwatch,
     aws_iam_role_policy_attachment.custom,
-    aws_iam_role_policy_attachment.ssm,
     aws_iam_role_policy.asg_lifecycle,
   ]
 }
