@@ -66,23 +66,39 @@ resource "aws_security_group" "instance" {
 }
 
 resource "aws_vpc_security_group_egress_rule" "this" {
-  for_each          = merge(local.default_egress_rules, var.additional_egress_rules)
-  cidr_ipv4         = each.value.cidr_ipv4
-  description       = each.value.description
-  from_port         = each.value.from_port
-  ip_protocol       = each.value.ip_protocol
-  security_group_id = aws_security_group.instance.id
-  to_port           = each.value.to_port
+  for_each = merge(local.default_egress_rules, var.additional_egress_rules)
+
+  cidr_ipv4                    = try(each.value.cidr_ipv4, null)
+  cidr_ipv6                    = try(each.value.cidr_ipv6, null)
+  description                  = try(each.value.description, null)
+  from_port                    = try(each.value.from_port, null)
+  ip_protocol                  = each.value.ip_protocol
+  prefix_list_id               = try(each.value.prefix_list_id, null)
+  referenced_security_group_id = try(each.value.referenced_security_group_id, null)
+  security_group_id            = aws_security_group.instance.id
+  tags = merge(
+    var.tags,
+    { "Name" = coalesce(try(each.value.name, null), "${aws_security_group.instance.name}-${each.key}") },
+  )
+  to_port = try(coalesce(each.value.to_port, each.value.from_port), null)
 }
 
 resource "aws_vpc_security_group_ingress_rule" "this" {
-  for_each          = merge(local.default_ingress_rules, var.additional_ingress_rules)
-  cidr_ipv4         = each.value.cidr_ipv4
-  description       = each.value.description
-  from_port         = each.value.from_port
-  ip_protocol       = each.value.ip_protocol
-  security_group_id = aws_security_group.instance.id
-  to_port           = each.value.to_port
+  for_each = merge(local.default_ingress_rules, var.additional_ingress_rules)
+
+  cidr_ipv4                    = try(each.value.cidr_ipv4, null)
+  cidr_ipv6                    = try(each.value.cidr_ipv6, null)
+  description                  = try(each.value.description, null)
+  from_port                    = try(each.value.from_port, null)
+  ip_protocol                  = each.value.ip_protocol
+  prefix_list_id               = try(each.value.prefix_list_id, null)
+  referenced_security_group_id = try(each.value.referenced_security_group_id, null)
+  security_group_id            = aws_security_group.instance.id
+  tags = merge(
+    var.tags,
+    { "Name" = coalesce(try(each.value.name, null), "${aws_security_group.instance.name}-${each.key}") },
+  )
+  to_port = try(coalesce(each.value.to_port, each.value.from_port), null)
 }
 
 resource "aws_iam_role" "instance" {
