@@ -274,12 +274,6 @@ resource "aws_launch_template" "nat" {
       Name = "${local.name}-volume"
     }, var.tags)
   }
-
-  lifecycle {
-    ignore_changes = [
-      image_id,
-    ]
-  }
 }
 
 resource "aws_eip" "nat" {
